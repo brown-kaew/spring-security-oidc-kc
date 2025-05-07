@@ -1,6 +1,23 @@
 server:
- port: 8080
+ port: 8088
 
 spring:
  application:
   name: spring-security-oidc-kc
+ security:
+  oauth2:
+    client:
+      registration:
+        keycloak:
+          client-id: kaew-oidc
+          client-secret: ZFUuzSq4CB4vpg5sx6jSPGY5bK98oz7S
+          scope: openid, profile, email
+          redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+          authorization-grant-type: authorization_code
+      provider:
+        keycloak:
+          issuer-uri: http://localhost:8080/auth/realms/kaew
+
+logging:
+  level:
+    org.springframework.security: DEBUG

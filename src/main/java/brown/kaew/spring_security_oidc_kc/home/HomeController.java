@@ -15,4 +15,16 @@ public class HomeController {
         log.info("homepage");
         return "home";
     }
+
+    @GetMapping("/admin")
+    public String admin() {
+        log.info("Admin page accessed");
+        return "admin";
+    }
+
+    @GetMapping("/access_denied")
+    public String accessDenied() {
+        log.warn("Access denied page accessed");
+        return "access_denied";
+    }
 }
