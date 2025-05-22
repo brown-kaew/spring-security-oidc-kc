@@ -10,7 +10,7 @@ spring:
       registration:
         keycloak:
           client-id: kaew-oidc
-#          client-secret: ZFUuzSq4CB4vpg5sx6jSPGY5bK98oz7S
+          client-secret: 7j0N2LZcosIDEQzYPWUjBVvE7sYfAwyQ
           scope: openid
           authorization-grant-type: authorization_code
           redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
