@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,12 +20,16 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistration.ProviderDetails;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.StringUtils;
 
 @Slf4j
@@ -32,11 +37,17 @@ import org.springframework.util.StringUtils;
 @EnableWebSecurity
 public class KcSecurityConfig {
 
+    final ClientRegistrationRepository clientRegistrationRepository;
+
+    public KcSecurityConfig(ClientRegistrationRepository clientRegistrationRepository) {
+        this.clientRegistrationRepository = clientRegistrationRepository;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/access_denied").permitAll()
-                .requestMatchers("/").hasAuthority("CLIENT_USER")
+                .requestMatchers("/").hasAnyAuthority("CLIENT_USER", "CLIENT_ADMIN")
                 .requestMatchers("/admin").hasAuthority("CLIENT_ADMIN")
                 .anyRequest().authenticated()
         );
@@ -45,6 +56,11 @@ public class KcSecurityConfig {
                 .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
                         .oidcUserService(this.oidcUserService())
                 )
+        );
+
+        http.logout(logout -> logout
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                .logoutSuccessHandler(oidcLogoutSuccessHandler())
         );
 
         http.exceptionHandling(exceptionHandling -> exceptionHandling
@@ -125,5 +141,16 @@ public class KcSecurityConfig {
                 /* Insert some transformation here if you want to add a prefix like "ROLE_" or force upper-case authorities */
                 .map(SimpleGrantedAuthority::new)
                 .map(GrantedAuthority.class::cast).toList();
+    }
+
+    private LogoutSuccessHandler oidcLogoutSuccessHandler() {
+        OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler =
+                new OidcClientInitiatedLogoutSuccessHandler(this.clientRegistrationRepository);
+
+        // Sets the location that the End-User's User Agent will be redirected to
+        // after the logout has been performed at the Provider
+        oidcLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}/");
+
+        return oidcLogoutSuccessHandler;
     }
 }

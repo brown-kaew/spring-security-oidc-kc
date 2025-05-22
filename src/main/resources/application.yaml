@@ -1,5 +1,5 @@
 server:
- port: 8088
+ port: 8080
 
 spring:
  application:
@@ -10,13 +10,13 @@ spring:
       registration:
         keycloak:
           client-id: kaew-oidc
-          client-secret: ZFUuzSq4CB4vpg5sx6jSPGY5bK98oz7S
+#          client-secret: ZFUuzSq4CB4vpg5sx6jSPGY5bK98oz7S
           scope: openid
           authorization-grant-type: authorization_code
           redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
       provider:
         keycloak:
-          issuer-uri: http://localhost:8080/auth/realms/kaew
+          issuer-uri: http://localhost:8085/auth/realms/kaew
 
 logging:
   level:
