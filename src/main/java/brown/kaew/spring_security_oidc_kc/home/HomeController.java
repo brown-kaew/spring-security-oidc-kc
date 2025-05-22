@@ -32,8 +32,11 @@ public class HomeController {
     }
 
     @GetMapping("/access_denied")
-    public String accessDenied() {
+    public String accessDenied(Model model, Authentication authentication) {
         log.warn("Access denied page accessed");
+        if (authentication.getPrincipal() instanceof OidcUser oidcUser) {
+            model.addAttribute("user", oidcUser.getPreferredUsername());
+        }
         return "access_denied";
     }
 }
